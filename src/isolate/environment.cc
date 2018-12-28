@@ -293,10 +293,14 @@ bool IsolateEnvironment::Scheduler::Lock::WakeIsolate(shared_ptr<IsolateEnvironm
 	}
 }
 
-void IsolateEnvironment::Scheduler::Lock::InterruptIsolate(IsolateEnvironment& isolate) {
-	assert(scheduler.status == Status::Running);
-	// Since this callback will be called by v8 we can be certain the pointer to `isolate` is still valid
-	isolate->RequestInterrupt(AsyncCallbackInterrupt, static_cast<void*>(&isolate));
+bool IsolateEnvironment::Scheduler::Lock::InterruptIsolate(IsolateEnvironment& isolate) {
+	if (scheduler.status == Status::Running) {
+		// Since this callback will be called by v8 we can be certain the pointer to `isolate` is still valid
+		isolate->RequestInterrupt(AsyncCallbackInterrupt, static_cast<void*>(&isolate));
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void IsolateEnvironment::Scheduler::Lock::InterruptSyncIsolate(IsolateEnvironment& isolate) {

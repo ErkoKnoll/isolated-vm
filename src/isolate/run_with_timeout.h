@@ -110,7 +110,7 @@ v8::Local<v8::Value> RunWithTimeout(uint32_t timeout_ms, F&& fn) {
 						{
 							IsolateEnvironment::Scheduler::Lock scheduler(isolate.scheduler);
 							scheduler.PushInterrupt(std::move(timeout_runner));
-							scheduler.InterruptIsolate(isolate);
+							assert(scheduler.InterruptIsolate(isolate));
 						}
 						isolate.CancelAsync();
 					}

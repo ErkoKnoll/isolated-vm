@@ -176,8 +176,8 @@ class IsolateEnvironment {
 						std::queue<std::unique_ptr<Runnable>> TakeSyncInterrupts();
 						// Returns true if a wake was scheduled, true if the isolate is already running.
 						bool WakeIsolate(std::shared_ptr<IsolateEnvironment> isolate_ptr);
-						// Request an interrupt in this isolate. `status` must == Running to invoke this.
-						void InterruptIsolate(IsolateEnvironment& isolate);
+						// Request an interrupt in this isolate. Returns false if isolate is not running.
+						bool InterruptIsolate(IsolateEnvironment& isolate);
 						// Interrupts an isolate running in the default thread
 						void InterruptSyncIsolate(IsolateEnvironment& isolate);
 				};

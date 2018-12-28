@@ -86,23 +86,24 @@ void InspectorAgent::SessionDisconnected(InspectorSession& session) {
  * Request to send an interrupt to the inspected isolate
  */
 void InspectorAgent::SendInterrupt(unique_ptr<class Runnable> task) {
-	// Grab pointer because it's needed for WakeIsolate
-	shared_ptr<IsolateEnvironment> ptr = isolate.holder->GetIsolate();
-	assert(ptr);
-	// Push interrupt onto queue
+	// Push interrupt task onto queue
 	IsolateEnvironment::Scheduler::Lock scheduler(isolate.scheduler);
 	scheduler.PushInterrupt(std::move(task));
+
 	// Wake up the isolate
-	if (!scheduler.WakeIsolate(ptr)) { // `true` if isolate is inactive
-		// Isolate is currently running
+	{
 		std::lock_guard<std::mutex> lock(mutex);
 		if (running) {
 			// Isolate is being debugged and is in `runMessageLoopOnPause`
 			cv.notify_all();
-		} else {
-			// Isolate is busy running JS code
-			scheduler.InterruptIsolate(isolate);
+			return;
 		}
+	}
+	if (!scheduler.InterruptIsolate(isolate)) {
+		// Isolate is inactive
+		shared_ptr<IsolateEnvironment> ptr = isolate.holder->GetIsolate();
+		assert(ptr);
+		assert(scheduler.WakeIsolate(ptr));
 	}
 }
 
